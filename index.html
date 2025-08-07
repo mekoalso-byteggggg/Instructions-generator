@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מחולל הנחיות תמונה יצירתי אולטימטיבי</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #c8e6c9 100%); /* Soft gradient background */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            direction: rtl; /* יישור כללי לימין */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: white;
+            padding: 40px; /* Increased padding */
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
+            max-width: 950px; /* Slightly wider */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px; /* Increased gap */
+        }
+        h1 {
+            color: #2196f3; /* Brighter blue */
+            margin-bottom: 20px;
+            font-size: 2.5em; /* Larger title */
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05); /* Subtle text shadow */
+        }
+        .options-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; /* Increased gap between sections */
+        }
+        .options-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px; /* Increased gap within groups */
+            width: 100%;
+        }
+        .option-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Increased gap */
+            width: calc(50% - 20px); /* Two items per row on larger screens */
+            max-width: 280px; /* Adjusted max-width */
+        }
+        .option-item label {
+            font-weight: 600;
+            color: #424242; /* Darker grey for better contrast */
+            font-size: 1em; /* Slightly larger font */
+            text-align: right;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        select, .radio-group label {
+            padding: 12px 18px; /* More padding */
+            border-radius: 10px; /* More rounded */
+            border: 1px solid #c5cae9; /* Softer border color */
+            background-color: #f5f5f5; /* Lighter background */
+            font-size: 1.05em; /* Slightly larger font */
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: right;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Subtle inner shadow */
+        }
+        select:focus, input[type="radio"]:checked + label {
+            border-color: #2196f3; /* Brighter blue focus */
+            box-shadow: 0 0 0 4px rgba(33, 150, 243, 0.25); /* Larger, softer glow */
+            background-color: #e3f2fd; /* Lighter blue background on active */
+        }
+        input[type="radio"] {
+            display: none;
+        }
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px; /* Adjusted gap */
+            justify-content: center;
+            width: 100%;
+        }
+        .radio-group label {
+            flex-grow: 1;
+            text-align: center;
+            min-width: 90px; /* Adjusted min-width */
+        }
+        .radio-group input[type="radio"] + label:hover {
+            background-color: #e0e0e0; /* Lighter hover */
+        }
+
+        #prompt-display {
+            background-color: #e3f2fd; /* Light blue background */
+            border: 1px solid #90caf9; /* Soft blue border */
+            border-radius: 12px; /* More rounded */
+            padding: 30px; /* More padding */
+            min-height: 180px; /* Increased min-height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em; /* Larger font */
+            text-align: right;
+            line-height: 1.8; /* More line height for readability */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            width: 100%;
+            box-sizing: border-box;
+            color: #1e88e5; /* Blue text */
+            font-weight: 500; /* Medium weight */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+        }
+        button {
+            background: linear-gradient(45deg, #2196f3, #1976d2); /* Blue gradient */
+            color: white;
+            border: none;
+            padding: 18px 40px; /* More padding */
+            font-size: 1.2em; /* Larger font */
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* Increased gap */
+            font-weight: 600;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); /* Stronger shadow */
+            letter-spacing: 0.5px; /* Slight letter spacing */
+        }
+        button:hover {
+            background: linear-gradient(45deg, #1976d2, #1565c0); /* Darker gradient on hover */
+            transform: translateY(-3px); /* More pronounced lift */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        button:disabled {
+            background: linear-gradient(45deg, #bbdefb, #90caf9); /* Lighter gradient when disabled */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Loading Animation */
+        .loading-animation {
+            width: 50px; /* Larger */
+            height: 50px; /* Larger */
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4fc3f7, #64b5f6); /* Lighter blue gradient */
+            animation: pulse-modern 1.8s infinite ease-in-out; /* Slower, smoother pulse */
+            display: none;
+            position: relative;
+            box-shadow: 0 0 15px rgba(79, 195, 247, 0.6); /* Glow effect */
+        }
+        .loading-animation.active {
+            display: block;
+        }
+        .loading-animation::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70%; /* Smaller inner circle */
+            height: 70%;
+            border-radius: 50%;
+            background-color: white;
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.1); /* Inner shadow */
+        }
+        @keyframes pulse-modern {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.05); /* Slightly less aggressive scale */
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0.9);
+                opacity: 0.8;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+                gap: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .option-item {
+                width: 100%;
+                max-width: none;
+            }
+            .radio-group {
+                flex-direction: row; /* Keep row for small screens too, if labels fit */
+                flex-wrap: wrap;
+                justify-content: space-around;
+                gap: 8px;
+            }
+            .radio-group label {
+                padding: 10px 12px;
+                font-size: 0.95em;
+                min-width: unset;
+                flex-basis: auto;
+            }
+            #prompt-display {
+                font-size: 1.15em;
+                padding: 20px;
+                min-height: 120px;
+            }
+            button {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+            .loading-animation {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        @media (max-width: 480px) {
+            .radio-group label {
+                flex-basis: calc(50% - 8px); /* Two columns on very small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>מחולל הנחיות תמונה יצירתי אולטימטיבי 🎨</h1>
+
+    <div class="options-section">
+        <div class="options-group">
+            <div class="option-item">
+                <label for="creativity-level">רמת יצירתיות:</label>
+                <div class="radio-group">
+                    <input type="radio" id="creativity-regular" name="creativity" value="regular" checked>
+                    <label for="creativity-regular">רגיל</label>
+                    <input type="radio" id="creativity-genius" name="creativity" value="genius">
+                    <label for="creativity-genius">גאוני</label>
+                    <input type="radio" id="creativity-theoretical" name="creativity" value="theoretical">
+                    <label for="creativity-theoretical">תיאורטי</label>
+                    <input type="radio" id="creativity-super-creative" name="creativity" value="super-creative">
+                    <label for="creativity-super-creative">יצירתי במיוחד</label>
+                    <input type="radio" id="creativity-situation" name="creativity" value="situation">
+                    <label for="creativity-situation">סיטואציה/פעולה</label>
+                    <input type="radio" id="creativity-random" name="creativity" value="random">
+                    <label for="creativity-random">רנדומלי במיוחד</label>
+                </div>
+            </div>
+
+            <div class="option-item">
+                <label for="prompt-length">אורך הנחיה:</label>
+                <div class="radio-group">
+                    <input type="radio" id="length-short" name="length" value="short" checked>
+                    <label for="length-short">קצרה</label>
+                    <input type="radio" id="length-medium" name="length" value="medium">
+                    <label for="length-medium">בינונית</label>
+                    <input type="radio" id="length-long" name="length" value="long">
+                    <label for="length-long">ארוכה</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="options-group">
+            <div class="option-item">
+                <label for="lighting">תאורה וזמן ביום:</label>
+                <div class="radio-group">
+                    <input type="radio" id="light-any" name="lighting" value="any" checked>
+                    <label for="light-any">כללי</label>
+                    <input type="radio" id="light-dawn" name="lighting" value="dawn">
+                    <label for="light-dawn">שחר</label> 
+                    <input type="radio" id="light-golden" name="lighting" value="golden">
+                    <label for="light-golden">שעת הזהב</label>
+                    <input type="radio" id="light-dusk" name="lighting" value="dusk">
+                    <label for="light-dusk">שקיעה דרמטית</label>
+                    <input type="radio" id="light-night" name="lighting" value="night">
+                    <label for="light-night">ליל ירח מלא</label>
+                    <input type="radio" id="light-neon" name="lighting" value="neon">
+                    <label for="light-neon">אור ניאון</label>
+                </div>
+            </div>
+
+            <div class="option-item">
+                <label for="mood">מצב רוח/רגש:</label>
+                <div class="radio-group">
+                    <input type="radio" id="mood-any" name="mood" value="any" checked>
+                    <label for="mood-any">כללי</label>
+                    <input type="radio" id="mood-joyful" name="mood" value="joyful">
+                    <label for="mood-joyful">שמח</label>
+                    <input type="radio" id="mood-melancholy" name="mood" value="melancholy">
+                    <label for="mood-melancholy">מלנכולי</label>
+                    <input type="radio" id="mood-mysterious" name="mood" value="mysterious">
+                    <label for="mood-mysterious">מסתורי</label>
+                    <input type="radio" id="mood-epic" name="mood" value="epic">
+                    <label for="mood-epic">אפי</label>
+                    <input type="radio" id="mood-chaotic" name="mood" value="chaotic">
+                    <label for="mood-chaotic">כאוטי</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="options-group">
+            <div class="option-item">
+                <label for="composition">קומפוזיציה/זווית צילום:</label>
+                <div class="radio-group">
+                    <input type="radio" id="comp-any" name="composition" value="any" checked>
+                    <label for="comp-any">כללי</label>
+                    <input type="radio" id="comp-closeup" name="composition" value="closeup">
+                    <label for="comp-closeup">קלוז-אפ</label>
+                    <input type="radio" id="comp-wide" name="composition" value="wide">
+                    <label for="comp-wide">זווית רחבה</label>
+                    <input type="radio" id="comp-birds-eye" name="composition" value="birds-eye">
+                    <label for="comp-birds-eye">ממעוף הציפור</label>
+                    <input type="radio" id="comp-low-angle" name="composition" value="low-angle">
+                    <label for="comp-low-angle">זווית נמוכה</label>
+                </div>
+            </div>
+
+            <div class="option-item">
+                <label for="art-style">סגנון אמנותי/טכניקה:</label>
+                <div class="radio-group">
+                    <input type="radio" id="style-any" name="art-style" value="any" checked>
+                    <label for="style-any">כללי</label>
+                    <input type="radio" id="style-oil" name="art-style" value="oil">
+                    <label for="style-oil">ציור שמן</label>
+                    <input type="radio" id="style-watercolor" name="art-style" value="watercolor">
+                    <label for="style-watercolor">צבעי מים</label>
+                    <input type="radio" id="style-digital" name="art-style" value="digital">
+                    <label for="style-digital">אמנות דיגיטלית</label>
+                    <input type="radio" id="style-surrealism" name="art-style" value="surrealism">
+                    <label for="style-surrealism">סוריאליזם</label>
+                    <input type="radio" id="style-cubism" name="art-style" value="cubism">
+                    <label for="style-cubism">קוביזם</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="options-group">
+            <div class="option-item" style="width: 100%; max-width: 500px;">
+                <label for="random-elements">אלמנטים מפתיעים/אקראיים במיוחד:</label>
+                <div class="radio-group">
+                    <input type="radio" id="random-elements-no" name="random-elements" value="no" checked>
+                    <label for="random-elements-no">ללא</label>
+                    <input type="radio" id="random-elements-yes" name="random-elements" value="yes">
+                    <label for="random-elements-yes">הוסף אלמנטים מפתיעים/אקראיים</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="prompt-display">לחץ על הכפתור כדי לקבל הנחייה חדשה וייחודית!</div>
+    <button onclick="generatePrompt()">
+        <span id="button-text">צור הנחייה חדשה</span>
+        <div id="loader" class="loading-animation"></div>
+    </button>
+</div>
+
+<script>
+    // API settings
+    const apiKey = "AIzaSyAzptP7SdGHhNXyUSbT6lhhQDA3CZHoohQ"; 
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+    // Variable to store the last generated prompt
+    let lastGeneratedPrompt = "";
+
+    // Sleep function (for Exponential Backoff)
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Function to call API with Exponential Backoff
+    async function callApiWithBackoff(payload, retries = 5, delay = 1000) {
+        const statusDisplay = document.getElementById('prompt-display'); 
+        
+        for (let i = 0; i < retries; i++) {
+            try {
+                statusDisplay.innerText = `סטטוס: מנסה להתחבר ל-AI... ניסיון ${i + 1}/${retries}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    statusDisplay.innerText = `סטטוס: שגיאת HTTP! קוד: ${response.status}. תגובה: ${errorText.substring(0, 100)}...`;
+                    if (response.status === 429 || response.status >= 500) { // Too Many Requests or server errors
+                        if (i < retries - 1) {
+                            await sleep(delay * Math.pow(2, i)); // Exponential delay
+                            continue;
+                        }
+                    }
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                }
+                
+                statusDisplay.innerText = 'סטטוס: קיבלתי תגובה, מפענח נתונים...';
+                return await response.json();
+
+            } catch (error) {
+                statusDisplay.innerText = `סטטוס: שגיאה כללית בחיבור! ${error.message.substring(0, 150)}...`;
+                if (i < retries - 1) {
+                    await sleep(delay * Math.pow(2, i));
+                } else {
+                    throw error;
+                }
+            }
+        }
+    }
+
+    // Main function to generate the prompt using LLM
+    async function generatePrompt() {
+        const promptDisplay = document.getElementById('prompt-display');
+        const loader = document.getElementById('loader');
+        const buttonText = document.getElementById('button-text');
+        const generateButton = document.querySelector('button');
+
+        // Get selected options
+        const creativityLevel = document.querySelector('input[name="creativity"]:checked').value;
+        const promptLength = document.querySelector('input[name="length"]:checked').value;
+        const lighting = document.querySelector('input[name="lighting"]:checked').value;
+        const mood = document.querySelector('input[name="mood"]:checked').value;
+        const composition = document.querySelector('input[name="composition"]:checked').value;
+        const artStyle = document.querySelector('input[name="art-style"]:checked').value;
+        const randomElements = document.querySelector('input[name="random-elements"]:checked').value;
+
+
+        // Set prompt length constraints for the AI
+        let lengthInstruction = "";
+        let maxLength = 480; // Overall max length for truncation
+        if (promptLength === "short") {
+            lengthInstruction = "ההנחיה צריכה להיות קצרה ותמציתית, עד 80 תווים.";
+            maxLength = 80;
+        } else if (promptLength === "medium") {
+            lengthInstruction = "ההנחיה צריכה להיות באורך בינוני, בין 80 ל-200 תווים.";
+            maxLength = 200;
+        } else { // long
+            lengthInstruction = "ההנחיה צריכה להיות ארוכה ומפורטת, בין 200 ל-480 תווים.";
+            maxLength = 480;
+        }
+
+        // Craft the user prompt based on all selected options
+        let userPromptCore = "";
+        switch (creativityLevel) {
+            case "regular":
+                userPromptCore = `צור הנחייה ייחודית, יצירתית ומפורטת ליצירת תמונה.`;
+                break;
+            case "genius":
+                userPromptCore = `צור הנחייה גאונית, חכמה, מעוררת מחשבה ובעלת עומק פילוסופי או קונספטואלי ליצירת תמונה. שלב אלמנטים מורכבים ורעיונות מופשטים באופן ויזואלי.`;
+                break;
+            case "theoretical":
+                userPromptCore = `צור הנחייה ליצירת תמונה המתארת משהו שקיים רק בתיאוריה, בפיזיקה קוונטית, או במציאות בלתי אפשרית. תאר סיטואציה סוריאליסטית, פרדוקסלית, או מושגים מדעיים מורכבים באופן ויזואלי.`;
+                break;
+            case "super-creative":
+                userPromptCore = `צור הנחייה יצירתית במיוחד, פרועה, בלתי צפויה ומלאת הברקות ליצירת תמונה. שלב אלמנטים מנוגדים, מוזרים, מצחיקים או סוריאליסטיים בצורה מקורית. חרוג מהרגיל.`;
+                break;
+            case "situation":
+                userPromptCore = `צור הנחייה המתארת סיטואציה דינמית ופעולה מרכזית ליצירת תמונה. התמקד באינטראקציה בין דמויות/עצמים/סביבה.`;
+                break;
+            case "random":
+                userPromptCore = `צור הנחייה רנדומלית במיוחד ליצירת תמונה, על ידי שילוב מילים ומושגים שאינם קשורים זה לזה כלל, אך באופן כלשהו יוצרים תמונה ויזואלית מפתיעה וקוהרנטית. התוצאה צריכה להיות בלתי צפויה לחלוטין.`;
+                break;
+        }
+
+        let specificInstructions = [];
+        if (lighting !== "any") {
+            const lightingMap = {
+                "dawn": "באור שחר רך",
+                "golden": "באור שעת הזהב זוהר",
+                "dusk": "בשקיעה דרמטית עם צללים ארוכים",
+                "night": "בליל ירח מלא עם כוכבים נוצצים",
+                "neon": "באורות ניאון בוהקים",
+                "studio": "בתאורת סטודיו נקייה ומדויקת"
+            };
+            specificInstructions.push(lightingMap[lighting]);
+        }
+        if (mood !== "any") {
+            const moodMap = {
+                "joyful": "עם אווירה שמחה ועליזה",
+                "melancholy": "עם אווירה מלנכולית ועצובה",
+                "mysterious": "עם אווירה מסתורית ומעורפלת",
+                "epic": "עם אווירה אפית ומונומנטלית",
+                "calm": "עם אווירה רגועה ושלווה",
+                "chaotic": "עם אווירה כאוטית וסוערת"
+            };
+            specificInstructions.push(moodMap[mood]);
+        }
+        if (composition !== "any") {
+            const compMap = {
+                "closeup": "קלוז-אפ דרמטי",
+                "wide": "צילום בזווית רחבה",
+                "birds-eye": "מבט ממעוף הציפור",
+                "low-angle": "פרספקטיבה מזווית נמוכה",
+                "panoramic": "צילום פנורמי רחב",
+                "macro": "צילום מאקרו מפורט"
+            };
+            specificInstructions.push(compMap[composition]);
+        }
+        if (artStyle !== "any") {
+            const styleMap = {
+                "oil": "בסגנון ציור שמן קלאסי",
+                "watercolor": "בסגנון צבעי מים רכים",
+                "digital": "באמנות דיגיטלית חדה",
+                "pixel": "בסגנון פיקסל ארט",
+                "surrealism": "בסגנון סוריאליסטי",
+                "cubism": "בסגנון קוביסטי",
+                "vangogh": "בסגנון ואן גוך",
+                "rembrandt": "בסגנון רמברנדט"
+            };
+            specificInstructions.push(styleMap[artStyle]);
+        }
+
+        let combinedInstructions = specificInstructions.length > 0 ? `. בנוסף, ${specificInstructions.join(", ")}.` : ".";
+
+        if (randomElements === "yes") {
+            combinedInstructions += ` שלב אלמנטים בלתי צפויים, מוזרים, או חסרי קשר הגיוני באופן יצירתי ומפתיע, כדי ליצור תמונה ייחודית לחלוטין.`;
+        }
+
+        // Add instruction to be radically different from the last prompt
+        let differenceInstruction = "";
+        if (lastGeneratedPrompt) {
+            differenceInstruction = ` ההנחיה החדשה חייבת להיות שונה באופן קיצוני, בלתי צפויה, ומנוגדת במהותה להנחיה הקודמת: "${lastGeneratedPrompt.substring(0, 150)}..."`;
+        }
+
+        const fullUserPrompt = `${userPromptCore} ${lengthInstruction} ודא שהיא שונה לחלוטין מכל הנחייה קודמת ומשלבת רעיונות מקוריים ובלתי צפויים.${differenceInstruction} ${combinedInstructions}`;
+
+        // Show loading animation and disable button
+        loader.classList.add('active');
+        buttonText.textContent = 'יוצר הנחייה...';
+        generateButton.disabled = true;
+        promptDisplay.innerText = 'טוען הנחייה חדשה... אנא המתן...';
+
+        try {
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: fullUserPrompt }] });
+
+            const payload = { contents: chatHistory };
+
+            const result = await callApiWithBackoff(payload); 
+
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                let generatedText = result.candidates[0].content.parts[0].text;
+
+                // Ensure the prompt does not exceed the selected max length
+                if (generatedText.length > maxLength) {
+                    let truncatedPrompt = generatedText.substring(0, maxLength - 3);
+                    const lastSpaceIndex = truncatedPrompt.lastIndexOf(" ");
+                    if (lastSpaceIndex > -1) {
+                        truncatedPrompt = truncatedPrompt.substring(0, lastSpaceIndex);
+                    }
+                    generatedText = truncatedPrompt + "...";
+                }
+                
+                // Store the newly generated prompt for the next request
+                lastGeneratedPrompt = generatedText;
+
+                promptDisplay.innerText = generatedText; 
+            } else {
+                promptDisplay.innerText = 'אירעה שגיאה: מבנה תגובת AI לא צפוי.';
+                console.error("Unexpected API response structure:", result);
+            }
+        } catch (error) {
+            promptDisplay.innerText = `שגיאה סופית: ${error.message.substring(0, 200)}...`; 
+            console.error("Error generating prompt:", error);
+        } finally {
+            // Hide loading animation and enable button
+            loader.classList.remove('active');
+            buttonText.textContent = 'צור הנחייה חדשה';
+            generateButton.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

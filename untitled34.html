@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>בדיקת JavaScript בסיסית</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background-color: #f0f0f0;
+            direction: rtl;
+        }
+        button {
+            padding: 15px 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #333;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<!-- הוספנו onload כדי לבדוק אם JS רץ בטעינת הדף -->
+<body onload="onPageLoad()">
+
+    <h1>בדיקת תגובת JavaScript</h1>
+    <button onclick="onButtonClick()">לחץ לבדיקה</button>
+    <div id="status">סטטוס: ממתין לטעינה...</div>
+
+    <script>
+        // פונקציה שרצה אוטומטית בטעינת הדף
+        function onPageLoad() {
+            const statusDisplay = document.getElementById('status');
+            statusDisplay.innerText = 'סטטוס: הדף נטען! JavaScript פועל.';
+        }
+
+        // פונקציה שרצה בלחיצה על הכפתור
+        function onButtonClick() {
+            const statusDisplay = document.getElementById('status');
+            statusDisplay.innerText = 'סטטוס: הכפתור נלחץ! JavaScript מגיב.';
+        }
+    </script>
+
+</body>
+</html>
